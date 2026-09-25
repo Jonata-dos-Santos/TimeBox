@@ -3,5 +3,5 @@ Um programa que serve como um Temporizador que salva o tempo restante em um arqu
 
 ## Direitos Autorais
 
-© 2026 Jonata. Todos os direitos reservados.
+© 2026 Jonata dos Santos. Todos os direitos reservados.
 Não copie, redistribua ou utilize este código em outros projetos sem autorização.
