@@ -5,22 +5,19 @@ import os
 from dateutil.relativedelta import relativedelta
 import customtkinter as ctk
 
-janela = ctk.CTk(fg_color="#0dbedb")
+janela = ctk.CTk()
 
 arquivo_config = Path("config.txt")
 
-# if not arquivo_config.exists():
-#     arquivo_config.touch()
-#     arquivo_config.open("w", encoding="utf-8").write(f"mode_string=system\ncolor_string=blue")
+if not arquivo_config.exists():
+    arquivo_config.touch()
+    arquivo_config.open("w", encoding="utf-8").write(f"mode_string=system\ncolor_string=blue")
 
-janela.title("TimeBox")
+janela.title("Contador e Limitador de Tempo de Trabalho")
 janela.geometry("380x380")
 janela.resizable(width=False, height=False)
-# ctk.set_appearance_mode(arquivo_config.open("r", encoding="utf-8").readlines()[0][12:])
-# ctk.set_default_color_theme(arquivo_config.open("r", encoding="utf-8").readlines()[1][13:])
-ctk.set_appearance_mode("system")
-janela.iconbitmap("TimeBox_Icone3.ico")
-
+ctk.set_appearance_mode(arquivo_config.open("r", encoding="utf-8").readlines()[0][12:])
+ctk.set_default_color_theme(arquivo_config.open("r", encoding="utf-8").readlines()[1][13:])
 
 janela.grid_rowconfigure(0, weight=1)
 janela.grid_rowconfigure(1, weight=1)
@@ -28,81 +25,88 @@ janela.grid_rowconfigure(1, weight=1)
 janela.grid_columnconfigure(0, weight=1)
 janela.grid_columnconfigure(1, weight=1)
 janela.grid_columnconfigure(2, weight=1)
-janela.grid_columnconfigure(3, weight=1)
-janela.grid_columnconfigure(4, weight=1)
 
 
-def somente_numeros(event):
-    if event.keysym in (
-        "BackSpace",
-        "Delete",
-        "Left",
-        "Right",
-        "Home",
-        "End",
-        "Up",
-        "Down"
-    ):
-        return
+# HORA
+frame_esquerda = ctk.CTkFrame(
+    janela,
+    width=120,
+    height=120,
+    fg_color="transparent"
+)
+frame_esquerda.grid(row=0, column=0)
 
-    if not event.char.isdigit():
-        return "break"
-
-def proxima_entry(event, entrada):
-    entrada.focus()
-
-frame_entradas = ctk.CTkFrame(janela, width=380, height=120, fg_color="#07789a", corner_radius=0)
-frame_entradas.grid(row=0, column=0, columnspan=5, pady=0, sticky="n")
-frame_entradas.grid_propagate(False)
-
-frame_tudo = ctk.CTkFrame(frame_entradas, width=280, height=90, fg_color="#072f3c", corner_radius=0)
-frame_tudo.grid(row=0, column=0, columnspan=5, padx=50, pady=(5, 15))
-frame_tudo.grid_propagate(False)
-
-frame_esquerda = ctk.CTkFrame(frame_tudo, width=60, height=120, fg_color="#072f3c")
-frame_esquerda.grid(row=0, column=0, padx=(20 , 10), pady=(15, 0))
-frame_esquerda.grid_propagate(False)
-
-limite_entrada_hora = ctk.CTkEntry(frame_esquerda, border_color="white", fg_color="#072f3c", corner_radius=0, font=(ctk.CTkFont(size=35)), width=60, height=60, placeholder_text="H", validate="key", validatecommand=(janela.register(lambda p: len(p) <= 2), '%P'), justify="center")
+limite_entrada_hora = ctk.CTkEntry(
+    frame_esquerda,
+    font=ctk.CTkFont(size=35),
+    width=60,
+    height=60,
+    placeholder_text="h",
+    validate="key",
+    validatecommand=(janela.register(lambda p: len(p) <= 2), "%P"),
+    justify="center"
+)
 limite_entrada_hora.grid(row=0, column=0)
-limite_entrada_hora.bind("<KeyPress>", somente_numeros)
-limite_entrada_hora.bind("<Return>", lambda event: proxima_entry(event, limite_entrada_minuto))
 
-frame_pontos1 = ctk.CTkFrame(frame_tudo, width=10, height=120, fg_color="#072f3c")
-frame_pontos1.grid(row=0, column=1, padx=0, pady=(15, 0))
-frame_pontos1.grid_propagate(False)
-ctk.CTkLabel(frame_pontos1, fg_color="#072f3c", font=(ctk.CTkFont(size=35)), text=":", width=10, height=60).grid(row=0, column=0)
 
-frame_centro = ctk.CTkFrame(frame_tudo, width=60, height=120, fg_color="#072f3c")
-frame_centro.grid(row=0, column=2, padx=10, pady=(15, 0))
-frame_centro.grid_propagate(False)
+# MINUTO
+frame_centro = ctk.CTkFrame(
+    janela,
+    width=120,
+    height=120,
+    fg_color="transparent"
+)
+frame_centro.grid(row=0, column=1)
 
-limite_entrada_minuto = ctk.CTkEntry(frame_centro, border_color="white", fg_color="#072f3c", corner_radius=0, font=(ctk.CTkFont(size=35)), width=60, height=60, placeholder_text="M", validate="key", validatecommand=(janela.register(lambda p: len(p) <= 2), '%P'), justify="center")
+limite_entrada_minuto = ctk.CTkEntry(
+    frame_centro,
+    font=ctk.CTkFont(size=35),
+    width=60,
+    height=60,
+    placeholder_text="m",
+    validate="key",
+    validatecommand=(janela.register(lambda p: len(p) <= 2), "%P"),
+    justify="center"
+)
 limite_entrada_minuto.grid(row=0, column=0)
-limite_entrada_minuto.bind("<KeyPress>", somente_numeros)
-limite_entrada_minuto.bind("<Return>", lambda event: proxima_entry(event, limite_entrada_segundo))
-# limite_entrada_minuto.pack()
 
-frame_pontos2 = ctk.CTkFrame(frame_tudo, width=10, height=120, fg_color="#072f3c")
-frame_pontos2.grid(row=0, column=3, padx=0, pady=(15, 0))
-frame_pontos2.grid_propagate(False)
-ctk.CTkLabel(frame_pontos2, fg_color="#072f3c", font=(ctk.CTkFont(size=35)), text=":", width=10, height=60).grid(row=0, column=0)
 
-frame_direita = ctk.CTkFrame(frame_tudo, width=60, height=120, fg_color="#072f3c")
-frame_direita.grid(row=0, column=4, padx=(10 , 0), pady=(15, 0))
-frame_direita.grid_propagate(False)
+# SEGUNDO
+frame_direita = ctk.CTkFrame(
+    janela,
+    width=120,
+    height=120,
+    fg_color="transparent"
+)
+frame_direita.grid(row=0, column=2)
 
-limite_entrada_segundo = ctk.CTkEntry(frame_direita, border_color="white", fg_color="#072f3c", corner_radius=0, font=(ctk.CTkFont(size=35)), width=60, height=60, placeholder_text="S", validate="key", validatecommand=(janela.register(lambda p: len(p) <= 2), '%P'), justify="center")
+limite_entrada_segundo = ctk.CTkEntry(
+    frame_direita,
+    font=ctk.CTkFont(size=35),
+    width=60,
+    height=60,
+    placeholder_text="s",
+    validate="key",
+    validatecommand=(janela.register(lambda p: len(p) <= 2), "%P"),
+    justify="center"
+)
 limite_entrada_segundo.grid(row=0, column=0)
-limite_entrada_segundo.bind("<KeyPress>", somente_numeros)
-limite_entrada_segundo.bind("<Return>", lambda event: proxima_entry(event, limite_entrada_hora))
 
-frame_centro_label = ctk.CTkFrame(janela, width=320, height=140, fg_color="#072f3c")
-frame_centro_label.grid(row=1, column=0, padx=30, columnspan=5, pady=(30, 0))
-frame_centro_label.grid_propagate(False)
 
-label_tempo = ctk.CTkLabel(frame_centro_label, font=(ctk.CTkFont(size=70)), text="00:00:00", width=320, height=120)
-label_tempo.grid(row=0, column=0)
+# FRAME MAIOR NO CENTRO
+frame_centro_label = ctk.CTkFrame(
+    janela,
+    width=320,
+    height=120,
+    fg_color="blue"
+)
+frame_centro_label.grid(
+    row=1,
+    column=0,
+    columnspan=3,
+    padx=30,
+    pady=0
+)
 
 def mostrar():
     global limite_entrada
@@ -237,11 +241,10 @@ if arquivo_tempo.exists():
         # sys.exit(0)
 
 
-frame_centro_botao = ctk.CTkFrame(janela, width=120, height=120, fg_color="transparent")
-frame_centro_botao.grid(row=2, column=2)
+frame_centro_botao = ctk.CTkFrame(janela, width=120, height=120, fg_color="transparent").grid(row=2, column=1, padx=0, pady=0)
 
-botao_comecar = ctk.CTkButton(frame_centro_botao, text="INICIAR", command=mostrar, fg_color="#072f3c", width=160, height=70, font=(ctk.CTkFont(size=30)), corner_radius=0)
-botao_comecar.grid(row=2, column=1, pady=30)
+botao_comecar = ctk.CTkButton(frame_centro_botao, text="Começar", command=mostrar)
+botao_comecar.grid(row=2, column=1)
 
 # botao_comecar.pack()
 
