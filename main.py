@@ -1,26 +1,19 @@
 from pathlib import Path
 from datetime import datetime, timedelta, date
-import time
-import os
-from dateutil.relativedelta import relativedelta
 import customtkinter as ctk
+import sys
+from playsound3 import playsound
 
+# customizando a janela do custom tkinter e guardando o arquivo de tempo em uma variável 
 janela = ctk.CTk(fg_color="#0dbedb")
 
-arquivo_config = Path("config.txt")
-
-# if not arquivo_config.exists():
-#     arquivo_config.touch()
-#     arquivo_config.open("w", encoding="utf-8").write(f"mode_string=system\ncolor_string=blue")
+arquivo_tempo = Path("tempo.txt")
 
 janela.title("TimeBox")
 janela.geometry("380x380")
 janela.resizable(width=False, height=False)
-# ctk.set_appearance_mode(arquivo_config.open("r", encoding="utf-8").readlines()[0][12:])
-# ctk.set_default_color_theme(arquivo_config.open("r", encoding="utf-8").readlines()[1][13:])
 ctk.set_appearance_mode("system")
 janela.iconbitmap("TimeBox_Icone3.ico")
-
 
 janela.grid_rowconfigure(0, weight=1)
 janela.grid_rowconfigure(1, weight=1)
@@ -31,7 +24,7 @@ janela.grid_columnconfigure(2, weight=1)
 janela.grid_columnconfigure(3, weight=1)
 janela.grid_columnconfigure(4, weight=1)
 
-
+# função pra evitar que escrevam qualquer coisa além de números nas entrys
 def somente_numeros(event):
     if event.keysym in (
         "BackSpace",
@@ -48,9 +41,11 @@ def somente_numeros(event):
     if not event.char.isdigit():
         return "break"
 
+# função pra passar de uma entry pra outra apertando "enter", mais detalhes nos "command=" das entrys
 def proxima_entry(event, entrada):
     entrada.focus()
 
+# organizando a interface com grid
 frame_entradas = ctk.CTkFrame(janela, width=380, height=120, fg_color="#07789a", corner_radius=0)
 frame_entradas.grid(row=0, column=0, columnspan=5, pady=0, sticky="n")
 frame_entradas.grid_propagate(False)
@@ -97,158 +92,120 @@ limite_entrada_segundo.grid(row=0, column=0)
 limite_entrada_segundo.bind("<KeyPress>", somente_numeros)
 limite_entrada_segundo.bind("<Return>", lambda event: proxima_entry(event, limite_entrada_hora))
 
-frame_centro_label = ctk.CTkFrame(janela, width=320, height=140, fg_color="#072f3c")
+frame_centro_label = ctk.CTkFrame(janela, width=320, height=140, fg_color="#072f3c", corner_radius=0)
 frame_centro_label.grid(row=1, column=0, padx=30, columnspan=5, pady=(30, 0))
 frame_centro_label.grid_propagate(False)
 
-label_tempo = ctk.CTkLabel(frame_centro_label, font=(ctk.CTkFont(size=70)), text="00:00:00", width=320, height=120)
-label_tempo.grid(row=0, column=0)
-
-def mostrar():
-    global limite_entrada
-    limite = limite_entrada.get()
-    print(limite)
-    
+label_tempo = ctk.CTkLabel(frame_centro_label, font=(ctk.CTkFont(size=70)), text=arquivo_tempo.open("r", encoding="utf-8").readlines()[0], width=320, height=120)
+label_tempo.grid(row=0, column=0, pady=(17, 0))
 
 
-
-
-
-
-
-
-
-# print(arquivo_config.open("r", encoding="utf-8").readlines()[0][12:])
-
-arquivo_tempo = Path("tempo.txt")
+# variáveis de tempo e criação do arquivo "tempo.txt"
 agora = datetime.now().strftime(fr"%H:%M:%S")
 hoje = date.today()
-
 passado = date(year=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[1], r"%d/%m/%Y").year, month=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[1], r"%d/%m/%Y").month, day=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[1], r"%d/%m/%Y").day)
-# contador = datetime(hour=0, minute=0, second=0)
-# contador_ativado = 0
-# tempo = 0
+
 
 if not arquivo_tempo.exists():
     hoje = datetime.now().strftime(fr"%d/%m/%Y")
     arquivo_tempo.touch()
     arquivo_tempo.open("w", encoding="utf-8").write(f"00:00:00\n{hoje}")
 
-# print(arquivo_tempo.exists() and arquivo_tempo.open("r", encoding="utf-8").readline(1))
 
 if arquivo_tempo.exists() and arquivo_tempo.open("r", encoding="utf-8").readlines()[0] == "" or arquivo_tempo.exists() and arquivo_tempo.open("r", encoding="utf-8").readlines()[1] == "":
     hoje = datetime.now().strftime(fr"%d/%m/%Y")
     arquivo_tempo.open("w", encoding="utf-8").write(f"00:00:00\n{hoje}")
 
 
-# print(passado)
-# print(type(datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[1], r"%d/%m/%Y")))
-# print(int(arquivo.open("r", encoding="utf-8").readline(-1)[0]))
-
 hoje = date.today()
 if passado < hoje:
     hoje = datetime.now().strftime(fr"%d/%m/%Y")
     arquivo_tempo.open("w", encoding="utf-8").write(f"00:00:00\n{hoje}")
-    # print(arquivo_tempo.open("r", encoding="utf-8").readlines()[1])
 
-
+# a seguir a variável que usei só pra sair do programa ao clicar no botão "pausar" e a função que funciona como o timer do programa
+contagem = 0
 
 def contar(contador_ativado):
-    os.system("cls")
     global arquivo_tempo
-    # global contador_ativado
     global hoje
-    global janela
     hoje = datetime.now().strftime(fr"%d/%m/%Y")
-    # tempo = datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S")
-    # if timedelta(hours=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").hour, minutes=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").minute, seconds=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").second) == timedelta(hours=0, minutes=0, seconds=0) and contador_ativado == 0:
+    global janela
+    global limite_entrada_hora
+    global limite_entrada_minuto
+    global limite_entrada_segundo
+    global label_tempo
+    global tempo_restante
+    global contagem
+
+    # essa parte (parte 1) faz o programa iniciar a contagem, caso o tempo seja 00:00:00 e o usuário defina o tempo depois
     if contador_ativado == 0:
-        # limite = ctk.CTkEntry(janela, 150, 50, )
-        ...
-        print("")
-    # if timedelta(hours=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").hour, minutes=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").minute, seconds=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").second) > timedelta(hours=0, minutes=0, seconds=0) and contador_ativado == 1:
-    if contador_ativado == 1:
+        limite_h = limite_entrada_hora.get()
+        limite_m = limite_entrada_minuto.get()
+        limite_s = limite_entrada_segundo.get()
+
+        limite_td = timedelta(0)
+        if limite_h.isdigit() or limite_m.isdigit() or limite_s.isdigit():
+                
+            if limite_h == "": limite_h = 0
+            if limite_m == "": limite_m = 0
+            if limite_s == "": limite_s = 0
+
+            limite_td += timedelta(hours=int(limite_h), minutes=int(limite_m), seconds=int(limite_s))
+        
+                
+            limite_tds = limite_td.total_seconds()
+            tempo_restante = limite_tds + 1
+        
+        else: tempo_restante = 0
+        
+        label_tempo.grid_configure(pady=0)
+
+    # essa parte (parte 3) faz o programa continuar de onde parou, após ter salvo o tempo restante no "tempo.txt" (nota: ele só salva o tempo se o programa for fechado)
+    if contador_ativado == 2:
         tempo_restante = int((timedelta(hours=datetime.strptime(open(arquivo_tempo, "r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").hour, minutes=datetime.strptime(open(arquivo_tempo, "r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").minute, seconds=datetime.strptime(open(arquivo_tempo, "r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").second)).total_seconds())
-    while True:
+        contagem = 1
+        if contagem == 1:
+            botao_comecar.configure(command=pausar, text="PAUSAR")
+        label_tempo.grid_configure(pady=0)
 
-        if "limite" in locals():
-            if limite.replace(".", "").isnumeric() and limite != "":
-                limite = float(limite)
-                # arquivo_tempo.open("w", encoding="utf-8").write(str(limite))
-                limite_td = timedelta(hours=limite)
-                limite_tds = limite_td.total_seconds()
-                tempo_restante = int(limite_tds)
-            elif not limite.replace(".", "").isnumeric() or limite == "":
-                print("[ERRO] - Você não digitou nenhum número.")
-        if tempo_restante != 0:
-            while tempo_restante >= 0:
-                time.sleep(1)
-                tempo = f"{tempo_restante // 3600:02d}:{(tempo_restante % 3600) // 60:02d}:{tempo_restante % 60:02d}"
-                # horas = int(f"{tempo_restante // 3600:02d}")
-                # minutos = int(f"{(tempo_restante % 3600) // 60:02d}")
-                # segundos = int(f"{tempo_restante % 60:02d}")
-                # contador.seconds += 1
-                # tempo_passado = limite_td - contador
-                tempo_restante -= 1
-                # tempo_restante -= contador.seconds
-                # contador_ativado = 1
-                arquivo_tempo_linhas = [f"{tempo}\n", f"{hoje}"]
-                arquivo_tempo.open("w", encoding="utf-8").writelines(arquivo_tempo_linhas)
-                # print(f"{tempo}\n{hoje}", end="", flush=True)
-                print(f"\n\033[2A{tempo}\n{hoje}", end="", flush=True)
-                # print(f"{hoje}", end="", flush=True)
-            # contador_ativado = 0
-            print("\n\nSeu tempo acabou!")
-            limite = input("Digite o seu novo tempo limite em horas: ")
-            print("")
-
-if arquivo_tempo.exists():
-    if int(timedelta(hours=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").hour, minutes=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").minute, seconds=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").second).total_seconds()) == 0:
-        # limite = input("Digite o seu tempo limite em horas: ")
-        # if limite.replace(".", "").isnumeric() and limite != "":
-        #     limite = float(limite)
-        #     arquivo.open("w", encoding="utf-8").write(str(limite))
-        #     limite_td = timedelta(hours=limite)
-        #     limite_tds = limite_td.total_seconds()
-        #     tempo_restante = limite_tds + 1
-            # if tempo_restante > 0: 
-        # contar(0)
+    # (continuação da parte 1 e 2): é aqui onde o temporizador funciona
+    if tempo_restante >= 0:
         
-        # print(int(timedelta(hours=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").hour, minutes=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").minute, seconds=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").second).total_seconds()))
-        ...
-        # while tempo > 0:
-        #     contador_ativado = 1
-        # contador_ativado = 0
-            # print(f"O tipo de limite é '{type(limite)}' e o valor é '{limite}'")
+        tempo = f"{int(tempo_restante // 3600):02d}:{int((tempo_restante % 3600) // 60):02d}:{int(tempo_restante % 60):02d}"
         
+        tempo_restante -= 1
+        
+        arquivo_tempo_linhas = [f"{tempo}\n", f"{hoje}"]
+        arquivo_tempo.open("w", encoding="utf-8").writelines(arquivo_tempo_linhas)
+        
+        label_tempo.configure(text=tempo)
+        
+        janela.after(1000, lambda: contar(1))
+        
+        if tempo_restante == -1:
+            label_tempo["text"] = "00:00:00"
+            arquivo_tempo.open("w", encoding="utf-8").write(f"00:00:00\n{hoje}")
+            playsound("Som_Alerta.mp3")
 
-
-    if int(timedelta(hours=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").hour, minutes=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").minute, seconds=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").second).total_seconds()) > 0:
-        # tempo = float(arquivo.read_text(encoding="utf-8"))
-        # contador_ativado = 1
-        # contar(1)
-        ...
-        # print(int(timedelta(hours=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").hour, minutes=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").minute, seconds=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readline(-1)[:-1], fr"%H:%M:%S").second).total_seconds()))
-
-
-    # if float(arquivo.open("r", encoding="utf-8").readline(-1)[:-1]) == 0:
-    #     arquivo.open("w", encoding="utf-8").write("0.0")
-    #     # print(float(str(tempo_restante)[0]))
-        # sys.exit(0)
-
-
+# criando o botão principal do programa (por enquanto é o único botão), posicionando ele na grid e definindo suas funções (nota: o "command=" do botão muda para a função pausar() lá dentro da função contar(); as outras funções são chamadas logo abaixo)
 frame_centro_botao = ctk.CTkFrame(janela, width=120, height=120, fg_color="transparent")
 frame_centro_botao.grid(row=2, column=2)
 
-botao_comecar = ctk.CTkButton(frame_centro_botao, text="INICIAR", command=mostrar, fg_color="#072f3c", width=160, height=70, font=(ctk.CTkFont(size=30)), corner_radius=0)
+botao_comecar = ctk.CTkButton(frame_centro_botao, text="INICIAR", command=lambda: contar(0), fg_color="#072f3c", width=160, height=70, font=(ctk.CTkFont(size=30)), corner_radius=0)
 botao_comecar.grid(row=2, column=1, pady=30)
 
-# botao_comecar.pack()
+# função de pausar (ela não pausa realmente; o programa fecha, mas o tempo é salvo do arquivo "tempo.txt")
+def pausar():
+    sys.exit()
 
+if arquivo_tempo.exists():
+    if int(timedelta(hours=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").hour, minutes=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").minute, seconds=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").second).total_seconds()) == 0:
+        
+        botao_comecar.configure(command=lambda: contar(0))
 
-
-
-
+    if int(timedelta(hours=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").hour, minutes=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").minute, seconds=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").second).total_seconds()) > 0:
+        
+        botao_comecar.configure(command=lambda: contar(2), text="CONTINUAR")
 
 
 

@@ -1,2 +1,0 @@
-mode_string=system
-color_string=blue
