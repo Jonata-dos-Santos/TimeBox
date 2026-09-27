@@ -3,17 +3,54 @@ from datetime import datetime, timedelta, date
 import customtkinter as ctk
 import sys
 from playsound3 import playsound
+import os
 
 # customizando a janela do custom tkinter e guardando o arquivo de tempo em uma variável 
 janela = ctk.CTk(fg_color="#0dbedb")
 
-arquivo_tempo = Path("tempo.txt")
+if getattr(sys, 'frozen', False):
+    arquivo_tempo = Path(sys.executable).parent / "tempo.txt"
+else:
+    arquivo_tempo = Path(__file__).parent / "tempo.txt"
+
+# variáveis de tempo e criação do arquivo "tempo.txt"
+agora = datetime.now().strftime(fr"%H:%M:%S")
+hoje = date.today()
+
+
+
+if not arquivo_tempo.exists():
+    hoje = datetime.now().strftime(fr"%d/%m/%Y")
+    arquivo_tempo.touch()
+    arquivo_tempo.open("w", encoding="utf-8").write(f"00:00:00\n{hoje}")
+
+
+if arquivo_tempo.exists() and arquivo_tempo.open("r", encoding="utf-8").readlines()[0] == "" or arquivo_tempo.exists() and arquivo_tempo.open("r", encoding="utf-8").readlines()[1] == "":
+    hoje = datetime.now().strftime(fr"%d/%m/%Y")
+    arquivo_tempo.open("w", encoding="utf-8").write(f"00:00:00\n{hoje}")
+
+if arquivo_tempo.exists():
+    passado = date(year=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[1], r"%d/%m/%Y").year, month=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[1], r"%d/%m/%Y").month, day=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[1], r"%d/%m/%Y").day)
+
+hoje = date.today()
+if passado < hoje:
+    hoje = datetime.now().strftime(fr"%d/%m/%Y")
+    arquivo_tempo.open("w", encoding="utf-8").write(f"00:00:00\n{hoje}")
 
 janela.title("TimeBox")
 janela.geometry("380x380")
 janela.resizable(width=False, height=False)
 ctk.set_appearance_mode("system")
-janela.iconbitmap("TimeBox_Icone3.ico")
+
+def resource_path(relative_path):
+    """Caminho correto tanto em dev quanto no .exe"""
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+janela.iconbitmap(resource_path("TimeBox_Icone3.ico"))
 
 janela.grid_rowconfigure(0, weight=1)
 janela.grid_rowconfigure(1, weight=1)
@@ -100,27 +137,7 @@ label_tempo = ctk.CTkLabel(frame_centro_label, font=(ctk.CTkFont(size=70)), text
 label_tempo.grid(row=0, column=0, pady=(17, 0))
 
 
-# variáveis de tempo e criação do arquivo "tempo.txt"
-agora = datetime.now().strftime(fr"%H:%M:%S")
-hoje = date.today()
-passado = date(year=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[1], r"%d/%m/%Y").year, month=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[1], r"%d/%m/%Y").month, day=datetime.strptime(arquivo_tempo.open("r", encoding="utf-8").readlines()[1], r"%d/%m/%Y").day)
 
-
-if not arquivo_tempo.exists():
-    hoje = datetime.now().strftime(fr"%d/%m/%Y")
-    arquivo_tempo.touch()
-    arquivo_tempo.open("w", encoding="utf-8").write(f"00:00:00\n{hoje}")
-
-
-if arquivo_tempo.exists() and arquivo_tempo.open("r", encoding="utf-8").readlines()[0] == "" or arquivo_tempo.exists() and arquivo_tempo.open("r", encoding="utf-8").readlines()[1] == "":
-    hoje = datetime.now().strftime(fr"%d/%m/%Y")
-    arquivo_tempo.open("w", encoding="utf-8").write(f"00:00:00\n{hoje}")
-
-
-hoje = date.today()
-if passado < hoje:
-    hoje = datetime.now().strftime(fr"%d/%m/%Y")
-    arquivo_tempo.open("w", encoding="utf-8").write(f"00:00:00\n{hoje}")
 
 # a seguir a variável que usei só pra sair do programa ao clicar no botão "pausar" e a função que funciona como o timer do programa
 contagem = 0
@@ -154,7 +171,7 @@ def contar(contador_ativado):
         
                 
             limite_tds = limite_td.total_seconds()
-            tempo_restante = limite_tds + 1
+            tempo_restante = limite_tds
         
         else: tempo_restante = 0
         
@@ -163,9 +180,6 @@ def contar(contador_ativado):
     # essa parte (parte 3) faz o programa continuar de onde parou, após ter salvo o tempo restante no "tempo.txt" (nota: ele só salva o tempo se o programa for fechado)
     if contador_ativado == 2:
         tempo_restante = int((timedelta(hours=datetime.strptime(open(arquivo_tempo, "r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").hour, minutes=datetime.strptime(open(arquivo_tempo, "r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").minute, seconds=datetime.strptime(open(arquivo_tempo, "r", encoding="utf-8").readlines()[0][:-1], fr"%H:%M:%S").second)).total_seconds())
-        contagem = 1
-        if contagem == 1:
-            botao_comecar.configure(command=pausar, text="PAUSAR")
         label_tempo.grid_configure(pady=0)
 
     # (continuação da parte 1 e 2): é aqui onde o temporizador funciona
@@ -186,6 +200,11 @@ def contar(contador_ativado):
             label_tempo["text"] = "00:00:00"
             arquivo_tempo.open("w", encoding="utf-8").write(f"00:00:00\n{hoje}")
             playsound("Som_Alerta.mp3")
+            botao_comecar.configure(command=lambda: contar(0), text="INICIAR")
+            label_tempo.grid_configure(pady=0)
+        if tempo_restante != 0 and tempo_restante != -1:
+            botao_comecar.configure(command=pausar, text="FECHAR")
+            label_tempo.grid_configure(pady=0)
 
 # criando o botão principal do programa (por enquanto é o único botão), posicionando ele na grid e definindo suas funções (nota: o "command=" do botão muda para a função pausar() lá dentro da função contar(); as outras funções são chamadas logo abaixo)
 frame_centro_botao = ctk.CTkFrame(janela, width=120, height=120, fg_color="transparent")
