@@ -1,0 +1,4 @@
+mode_theme=Dark
+color1=black
+color2=white
+mode_button_icon=☼
