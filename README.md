@@ -1,6 +1,6 @@
 # TimeBox
 
-Um temporizador com contagem regressiva desenvolvido em Python, com salvamento do tempo restante e opções de personalização da interface e do som de alerta.
+Um temporizador com contagem regressiva desenvolvido em Python em 10 dias, com salvamento do tempo restante e opções de personalização da interface e do som de alerta.
 
 ## Download
 
